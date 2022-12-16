@@ -36,7 +36,8 @@ class App extends React.Component {
 
   tokenCheck = () => {
     const token = localStorage.getItem('jwt');
-    auth.getMe(token)
+    if (token) {
+      auth.getMe(token)
       .then((res) => {
         if (res) {
           this.setState({
@@ -52,6 +53,7 @@ class App extends React.Component {
       .catch((err) => {
           console.log(err);
       });
+    }
   }
 
   componentDidMount = () => {
