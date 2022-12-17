@@ -38,21 +38,21 @@ class App extends React.Component {
     const token = localStorage.getItem('jwt');
     if (token) {
       auth.getMe(token)
-      .then((res) => {
-        if (res) {
-          this.setState({
-            userEmail: res.data.email,
-          }, () => {
+        .then((res) => {
+          if (res) {
             this.setState({
-              loggedIn: true,
+              userEmail: res.data.email,
+            }, () => {
+              this.setState({
+                loggedIn: true,
+              });
+              this.props.history.push('/');
             });
-            this.props.history.push('/');
-          });
-        }
-      })
-      .catch((err) => {
-          console.log(err);
-      });
+          }
+        })
+        .catch((err) => {
+            console.log(err);
+        });
     }
   }
 
