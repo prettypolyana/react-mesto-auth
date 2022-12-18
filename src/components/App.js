@@ -25,13 +25,26 @@ class App extends React.Component {
       isAddPlacePopupOpen: false,
       isEditAvatarPopupOpen: false,
       isInfoTooltipOpen: false,
-      isRegistrationSuccess: null,
+      isInfoTooltipSuccess: null,
+      infoTooltipMessage: '',
       isLoginSuccess: null,
       selectedCard: null,
       currentUser: null,
       userEmail: '',
       cards: [],
     }
+  }
+
+  setSuccessRegisterInfoTooltipMessage = () => {
+    this.setState({
+      infoTooltipMessage: "Вы успешно зарегистрировались!",
+    });
+  }
+
+  setErrorInfoTooltipMessage = () => {
+    this.setState({
+      infoTooltipMessage: "Что-то пошло не так! Попробуйте ещё раз.",
+    });
   }
 
   tokenCheck = () => {
@@ -46,6 +59,7 @@ class App extends React.Component {
               this.setState({
                 loggedIn: true,
               });
+              this.loadUserAndCards();
               this.props.history.push('/');
             });
           }
@@ -56,7 +70,7 @@ class App extends React.Component {
     }
   }
 
-  componentDidMount = () => {
+  loadUserAndCards = () => {
     Promise.all([api.getUserInfo(), api.getInitialCards()])
       .then(([userData, cardsData]) => {
           this.setState({
@@ -67,16 +81,19 @@ class App extends React.Component {
       .catch((err) => {
           console.log(err);
       });
-      this.tokenCheck();
-  };
+  }
+
+  componentDidMount = () => {
+    this.tokenCheck();
+  }
 
   handleEditAvatarClick = () => {
     this.setState({isEditAvatarPopupOpen: true});
-  };
+  }
 
   handleEditProfileClick = () => {
     this.setState({isEditProfilePopupOpen: true});
-  };
+  }
 
   handleAddPlaceClick = () => {
     this.setState({isAddPlacePopupOpen: true});
@@ -88,6 +105,7 @@ class App extends React.Component {
       isAddPlacePopupOpen: false,
       isEditAvatarPopupOpen: false,
       isInfoTooltipOpen: false,
+      infoTooltipMessage: '',
       selectedCard: null,
     });
   }
@@ -181,8 +199,9 @@ class App extends React.Component {
     auth.register(email, password)
       .then((res) => {
         this.setState({
-          isRegistrationSuccess: true,
+          isInfoTooltipSuccess: true,
         }, () => {
+          this.setSuccessRegisterInfoTooltipMessage();
           this.setState({
             isInfoTooltipOpen: true,
           });
@@ -192,8 +211,9 @@ class App extends React.Component {
       })
       .catch((err) => {
         this.setState({
-          isRegistrationSuccess: false,
+          isInfoTooltipSuccess: false,
         }, () => {
+          this.setErrorInfoTooltipMessage();
           this.setState({
             isInfoTooltipOpen: true,
           });
@@ -222,6 +242,7 @@ class App extends React.Component {
               this.setState({
                 userEmail: userData.data.email,
               });
+              this.loadUserAndCards();
               this.props.history.push('/');
               return userData;
             })
@@ -232,6 +253,11 @@ class App extends React.Component {
       .catch((err) => {
         this.setState({
           isLoginSuccess: false,
+        }, () => {
+          this.setErrorInfoTooltipMessage();
+          this.setState({
+            isInfoTooltipOpen: true,
+          });
         });
         console.log(err);
       });
@@ -272,13 +298,15 @@ class App extends React.Component {
               <Register onRegister={this.handleRegister} />
             </Route>
           </Switch>
-          { this.props.location.pathname == '/' ? <Footer /> : '' }
+          <Route exact path='/'>
+            <Footer />
+          </Route>
           <EditProfilePopup isOpen={this.state.isEditProfilePopupOpen} onClose={this.closeAllPopups} onUpdateUser={this.handleUpdateUser}/>
           <AddPlacePopup isOpen={this.state.isAddPlacePopupOpen} onClose={this.closeAllPopups} onAddPlace={this.handleAddPlaceSubmit}/>
           <PopupWithForm name="delete-question" title="Вы уверены?" btnText="Да"/>
           <EditAvatarPopup isOpen={this.state.isEditAvatarPopupOpen} onClose={this.closeAllPopups} onUpdateAvatar={this.handleUpdateAvatar}/>
           <ImagePopup card={this.state.selectedCard} onClose={this.closeAllPopups}/>
-          <InfoTooltip isOpen={this.state.isInfoTooltipOpen} isSuccess={this.state.isRegistrationSuccess} onClose={this.closeAllPopups}></InfoTooltip>
+          <InfoTooltip message={this.state.infoTooltipMessage} isOpen={this.state.isInfoTooltipOpen} isSuccess={this.state.isInfoTooltipSuccess} onClose={this.closeAllPopups}></InfoTooltip>
         </CurrentUserContext.Provider>
       </div>
     );
